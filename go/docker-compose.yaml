@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+
+  hello-world-app:
+    build:
+      context: .
+    image: cflsena/codeeducation
+    container_name: hello-world
+    volumes:
+      - ./app:/go/src/app

@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+
+  challenge-node-nginx:
+    build:
+      context: ./nginx
+    container_name: challenge-node-nginx
+    entrypoint: dockerize -wait tcp://challenge-node-app:3000 -timeout 40s /docker-entrypoint.sh
+    command: bash -c "nginx -g 'daemon off;'"
+    networks:
+      - challenge-node-network
+    ports:
+      - "8080:80"
+    depends_on:
+        - challenge-node-app
+  
+  challenge-node-app:
+    build:
+      context: ./
+    container_name: challenge-node-app
+    entrypoint: dockerize -wait tcp://challenge-node-db:3306 -timeout 20s docker-entrypoint.sh
+    command: bash -c "cd src/ && node index.js"
+    volumes:
+      - ./app/src:/usr/src/app/src
+    networks:
+      - challenge-node-network
+    tty: true
+    depends_on:
+        - challenge-node-db
+
+  challenge-node-db:
+    image: mysql:5.6
+    container_name: challenge-node-db
+    restart: always
+    tty: true
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - challenge-node-network
+
+networks:
+  challenge-node-network:
+    name: challenge-node-network
+    driver: bridge
